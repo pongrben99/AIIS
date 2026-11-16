@@ -20,4 +20,9 @@ public class SensorService {
         sensor.type()
     ));
   }
+
+  public boolean checkIfTheSensorNameIsAlreadyTaken(final String name) {
+      return sensorRepository.existsByName(name);
+  }
+
 }
