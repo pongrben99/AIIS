@@ -24,7 +24,8 @@ public class Sensor {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(nullable = false)
+  //could be usefull that unique in the future.
+  @Column(nullable = false, unique = true)
   private String name;
 
   @Enumerated(EnumType.STRING)
