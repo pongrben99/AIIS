@@ -1,35 +1,64 @@
 package com.aldisued.iot.monitoring.service;
 
 import com.aldisued.iot.monitoring.dto.SensorReadingDto;
+import com.aldisued.iot.monitoring.entity.Alert;
+import com.aldisued.iot.monitoring.entity.Sensor;
 import com.aldisued.iot.monitoring.entity.SensorReading;
+import com.aldisued.iot.monitoring.entity.SensorType;
+import com.aldisued.iot.monitoring.repository.AlertRepository;
 import com.aldisued.iot.monitoring.repository.SensorReadingRepository;
 import com.aldisued.iot.monitoring.repository.SensorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class SensorReadingService {
 
-  private final SensorReadingRepository sensorReadingRepository;
-  private final SensorRepository sensorRepository;
+    private final SensorReadingRepository sensorReadingRepository;
+    private final SensorRepository sensorRepository;
+    private final AlertRepository alertRepository;
 
-  public SensorReadingService(SensorReadingRepository sensorReadingRepository,
-      SensorRepository sensorRepository) {
-    this.sensorReadingRepository = sensorReadingRepository;
-    this.sensorRepository = sensorRepository;
-  }
+    public SensorReadingService(SensorReadingRepository sensorReadingRepository,
+                                SensorRepository sensorRepository,
+                                AlertRepository alertRepository) {
+        this.sensorReadingRepository = sensorReadingRepository;
+        this.sensorRepository = sensorRepository;
+        this.alertRepository = alertRepository;
+    }
 
     /**
-     * since its rn just a homework and no real production environment we can ignore these null checks cuz only do "happy path",
-     * but we should handle all the edge cases. (nullchecks, incoming data validation etc..)
+     * Handle edgecases, nulls, etc...
      */
-    //
-  public SensorReading saveSensorReading(final SensorReadingDto sensorReadingDto) {
-      Objects.requireNonNull(sensorReadingDto, "Sensor reading dto is null");
+    @Transactional
+    public SensorReading saveSensorReading(final SensorReadingDto sensorReadingDto) {
+        //TODO: Task 3
+        //TODO: Task 10
+        Objects.requireNonNull(sensorReadingDto, "Sensor reading dto is null");
 
-      //TODO: Task 3
-      return sensorReadingRepository.saveAndFlush(new SensorReading(sensorReadingDto.value(), sensorReadingDto.timestamp(), sensorRepository.getReferenceById(sensorReadingDto.sensorId())));
-  }
+        Sensor sensor = sensorRepository.getReferenceById(sensorReadingDto.sensorId());
+
+        Double value = sensorReadingDto.value();
+
+        ruleChecker(sensor.getType(), value).ifPresent(message ->
+                alertRepository.save(new Alert(message, sensorReadingDto.timestamp(), sensor))
+        );
+
+        return sensorReadingRepository.saveAndFlush(
+                new SensorReading(value, sensorReadingDto.timestamp(), sensor)
+        );
+    }
+
+    //maybe check for nulls
+    private Optional<String> ruleChecker(final SensorType type, final Double value) {
+        return switch (type) {
+            case TEMPERATURE -> value > 40.0 || value < -20.0 ? Optional.of("Temperature out of range: " + value) : Optional.empty();
+            case HUMIDITY -> value > 90.0 ? Optional.of("Humidity too high: " + value) : Optional.empty();
+            case ATMOSPHERIC_PRESSURE -> value < 950.0 || value > 1050.0? Optional.of("Pressure out of range: " + value) : Optional.empty();
+        };
+    }
+
 
 }
