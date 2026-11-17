@@ -22,9 +22,13 @@ public class MeasurementService {
     return List.of();
   }
 
+    /**
+     * always use the db for these calculations if we solve with streams we could get OOM and slower than let the DB handle this calculation.
+     */
   public Optional<Double> getAverageTemperature(LocalDateTime from, LocalDateTime to) {
     // TODO: Task 7
-    return Optional.empty();
+    return sensorReadingRepository.findAverageValueBySensorTypeAndTimestampBetween(
+            SensorType.TEMPERATURE, from, to);
   }
 
 }
