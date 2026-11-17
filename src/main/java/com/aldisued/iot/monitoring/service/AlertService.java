@@ -4,6 +4,8 @@ import com.aldisued.iot.monitoring.dto.AlertDto;
 import com.aldisued.iot.monitoring.entity.Alert;
 import com.aldisued.iot.monitoring.repository.AlertRepository;
 import com.aldisued.iot.monitoring.repository.SensorRepository;
+
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -27,8 +29,11 @@ public class AlertService {
     return null;
   }
 
-  public AlertDto findLastAlertBySensorId(UUID sensorId) {
+    /**
+     * Here i would throw back an exception what a exception handler could handle in a restcontrolleradvice but rn not overthinking anything.
+     */
+  public Optional<AlertDto> findLastAlertBySensorId(UUID sensorId) {
     // TODO: Task 5
-    return null;
+    return alertRepository.findTopBySensorIdOrderByTimestampDesc(sensorId).map(p1 -> new AlertDto(p1.getSensor().getId(), p1.getMessage(), p1.getTimestamp()));
   }
 }
