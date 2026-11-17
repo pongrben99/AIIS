@@ -23,7 +23,7 @@ public class AlertController {
   }
 
   @GetMapping(path = "/latest")
-  public ResponseEntity<AlertDto> getEntityByUUID(@RequestParam(name="sensorId") final UUID sensorId) {
+  public ResponseEntity<AlertDto> getEntityByUUID(@RequestParam(name="sensorId", required = true) final UUID sensorId) {
       Optional<AlertDto> optionalAlertDto = alertService.findLastAlertBySensorId(sensorId);
       return optionalAlertDto.map(alertDto -> new ResponseEntity<>(alertDto, HttpStatus.OK))
               .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
